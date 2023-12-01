@@ -13,10 +13,7 @@ TODAY = datetime.now().day
 
 ENTRYPOINTS_FILENAME = "entrypoints.yaml"
 with open(ENTRYPOINTS_FILENAME) as f:
-    ENTRYPOINTS = yaml.safe_load(f)
-
-    if not ENTRYPOINTS:
-        ENTRYPOINTS = {}
+    ENTRYPOINTS = yaml.safe_load(f) or {}
 
 
 def update_entrypoints():
@@ -28,7 +25,7 @@ def get_day_path(day: int):
     return Path(f"day_{day:02d}")
 
 
-def get_module_name(day: int) -> str | None:
+def get_module_name(day: int) -> str:
     module_name = ENTRYPOINTS.get(day)
 
     if not module_name:
@@ -94,25 +91,17 @@ def prepare(module_name: str, day: int):
 @arg_part
 @arg_day
 def test(part: Part, day: int):
-    """Test a given puzzle.
+    """Test a given puzzle."""
 
-    Args:
-        part: Part 'a' or 'b' of the puzzle.
-        day (int): The day number of the puzzle (defaults to today).
-    """
-    click.echo(test_solution(part, day))
+    test_solution(part, day)
 
 
 @click.command()
 @arg_part
 @arg_day
 def solve(part: Part, day: int):
-    """Get the solution of a given puzzle.
+    """Get the solution of a given puzzle."""
 
-    Args:
-        part: Part 'a' or 'b' of the puzzle.
-        day (int): The day number of the puzzle (defaults to today).
-    """
     with open(get_day_path(day) / "input.txt") as f:
         click.echo(get_solution(part, day, f.read()))
 
@@ -121,15 +110,13 @@ def solve(part: Part, day: int):
 @arg_part
 @arg_day
 def submit(part: Part, day: int):
-    """Submit the solution of a given puzzle.
+    """Submit the solution of a given puzzle."""
 
-    Args:
-        part: Part 'a' or 'b' of the puzzle.
-        day (int): The day number of the puzzle (defaults to today).
-    """
     with open(get_day_path(day) / "input.txt") as f:
         solution = get_solution(part, day, f.read())
+
         if solution == None:
             click.echo("Nothing to submit")
             return
+
         aocd_submit(solution, part=part, day=day)
