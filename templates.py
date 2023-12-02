@@ -22,9 +22,9 @@ EXPECTED_SOLUTION_B = None
 
 
 def test_a():
-    assert solve_a() == EXPECTED_SOLUTION_A
+    assert solve_a(TEST_INPUT) == EXPECTED_SOLUTION_A
 
 
 def test_b():
-    assert solve_b() == EXPECTED_SOLUTION_B
+    assert solve_b(TEST_INPUT) == EXPECTED_SOLUTION_B
 """
