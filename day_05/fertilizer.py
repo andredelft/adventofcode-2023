@@ -3,6 +3,10 @@ from more_itertools import chunked
 from lib.regex import parse_numbers
 
 
+def is_in_range(value: int, range_start: int, range_length: int):
+    return range_start <= value < range_start + range_length
+
+
 def parse_input(input_string: str):
     blocks = input_string.split("\n\n")
 
@@ -29,18 +33,11 @@ def solve_a(input_string: str):
 
         for map_parts in maps:
             destination_value = source_value
-            for (
-                destination_range_start,
-                source_range_start,
-                range_length,
-            ) in map_parts:
-                source_in_range = (
-                    source_range_start
-                    <= source_value
-                    < source_range_start + range_length
-                )
 
-                if source_in_range:
+            for map_part in map_parts:
+                (destination_range_start, source_range_start, range_length) = map_part
+
+                if is_in_range(source_value, source_range_start, range_length):
                     destination_value = (
                         source_value - source_range_start + destination_range_start
                     )
@@ -62,25 +59,18 @@ def solve_b(input_string: str):
     seeds, maps = parse_input(input_string)
     location = 0
 
-    while True:
-        print(location)
+    seed_in_range = False
+    while not seed_in_range:
         source_value = location
 
         for map_parts in reversed(maps):
             destination_value = source_value
-            # We reverse the mapping, hence we switch source & destination
-            for (
-                source_range_start,
-                destination_range_start,
-                range_length,
-            ) in map_parts:
-                source_in_range = (
-                    source_range_start
-                    <= source_value
-                    < source_range_start + range_length
-                )
 
-                if source_in_range:
+            # We reverse the mapping, hence we switch source & destination
+            for map_part in map_parts:
+                (source_range_start, destination_range_start, range_length) = map_part
+
+                if is_in_range(source_value, source_range_start, range_length):
                     destination_value = (
                         source_value - source_range_start + destination_range_start
                     )
@@ -90,15 +80,12 @@ def solve_b(input_string: str):
 
         seed = destination_value
 
-        seed_in_range = False
         for seed_range_start, range_length in chunked(seeds, 2):
-            if seed_range_start <= seed < seed_range_start + range_length:
+            if is_in_range(seed, seed_range_start, range_length):
                 seed_in_range = True
                 break
 
-        if seed_in_range:
-            break
-
-        location += 1
+        if not seed_in_range:
+            location += 1
 
     return location
