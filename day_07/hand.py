@@ -18,14 +18,37 @@ HIGH_CARD_ORDER = {
     "2": 2,
 }
 
+HIGH_CARD_ORDER_WITH_JOKERS = {
+    **HIGH_CARD_ORDER,
+    "J": 1,
+}
+
 
 @total_ordering
 class Hand(object):
-    def __init__(self, cards: str):
+    def __init__(self, cards: str, with_jokers=False):
         self.cards_list = list(cards)
         self.cards = Counter(cards)
+
+        if with_jokers:
+            try:
+                num_jokers = self.cards.pop("J")
+            except KeyError:
+                pass
+            else:
+                if num_jokers == 5:
+                    # Reset hand, since there is no other card to turn the joker into
+                    self.cards["J"] = 5
+                elif num_jokers > 0:
+                    most_common_card = self.cards.most_common(1)[0][0]
+                    self.cards[most_common_card] += num_jokers
+
+        high_card_order = (
+            HIGH_CARD_ORDER_WITH_JOKERS if with_jokers else HIGH_CARD_ORDER
+        )
+
         self.pairs = tuple(sorted(self.cards.values(), reverse=True))
-        self.card_order = tuple(map(lambda c: HIGH_CARD_ORDER[c], self.cards_list))
+        self.card_order = tuple(high_card_order[card] for card in self.cards_list)
 
     def __eq__(self, other):
         return self.pairs == other.pairs and self.card_order == other.card_order
