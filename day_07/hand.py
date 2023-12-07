@@ -2,7 +2,7 @@ from functools import total_ordering
 from collections import Counter
 
 
-HIGH_CARD_ORDER = {
+CARD_VALUE_MAP = {
     "A": 14,
     "K": 13,
     "Q": 12,
@@ -18,17 +18,17 @@ HIGH_CARD_ORDER = {
     "2": 2,
 }
 
-HIGH_CARD_ORDER_WITH_JOKERS = {
-    **HIGH_CARD_ORDER,
+CARD_VALUE_MAP_WITH_JOKERS = {
+    **CARD_VALUE_MAP,
     "J": 1,
 }
 
 
 @total_ordering
 class Hand(object):
-    def __init__(self, cards: str, with_jokers=False):
-        self.cards_list = list(cards)
-        self.cards = Counter(cards)
+    def __init__(self, cards_str: str, with_jokers=False):
+        self.cards_str = cards_str
+        self.cards = Counter(cards_str)
 
         if with_jokers:
             try:
@@ -43,24 +43,22 @@ class Hand(object):
                     most_common_card = self.cards.most_common(1)[0][0]
                     self.cards[most_common_card] += num_jokers
 
-        high_card_order = (
-            HIGH_CARD_ORDER_WITH_JOKERS if with_jokers else HIGH_CARD_ORDER
-        )
+        card_value_map = CARD_VALUE_MAP_WITH_JOKERS if with_jokers else CARD_VALUE_MAP
 
         self.pairs = tuple(sorted(self.cards.values(), reverse=True))
-        self.card_order = tuple(high_card_order[card] for card in self.cards_list)
+        self.card_values = tuple(card_value_map[card] for card in self.cards_str)
 
     def __eq__(self, other):
-        return self.pairs == other.pairs and self.card_order == other.card_order
+        return self.card_values == other.card_values
 
     def __lt__(self, other):
         if self.pairs == other.pairs:
-            return self.card_order < other.card_order
+            return self.card_values < other.card_values
 
         return self.pairs < other.pairs
 
     def __str__(self):
-        return "".join(self.cards_list)
+        return self.cards_str
 
     def __repr__(self):
         return f"<Hand: {self}>"
