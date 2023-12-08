@@ -1,6 +1,7 @@
 import re
 from itertools import cycle
-from math import lcm
+
+from lib.math import lcm
 
 
 def parse_input(input_string: str):
@@ -41,8 +42,9 @@ def solve_b(input_string: str):
         step_index = 0
         history = [list() for _ in instructions]
 
-        # When the node has already been visited at this step_index, a
-        # cycle will be formed, which is contained in the history.
+        # When the node has already been visited at the current `step_index`,
+        # a cycle will be formed, which is already contained in the history.
+        # Therefore we can stop traversing when this happens.
         while node not in history[step_index]:
             history[step_index].append(node)
 
@@ -59,7 +61,8 @@ def solve_b(input_string: str):
 
         # Inspection of the history data reveals that each travling node:
         #
-        # - Ends up at exactly one coordinate ending with 'Z' in its history.
+        # - Ends up at exactly one coordinate ending with 'Z' in its history
+        #   when the loop has stopped.
         # - This coordinate is always reached at step_index = 0.
         # - Within the round it visits this coordinate, at a certain step, it
         #   visits a node it had already visited before on that step, thus
