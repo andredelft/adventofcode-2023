@@ -1,5 +1,6 @@
 from itertools import count, pairwise
 from math import asin, pi
+from tqdm import tqdm
 
 from lib.field import iterate_field, get_dimensions, iter_around
 
@@ -8,6 +9,8 @@ UP_CHARS = "|LJS"
 RIGHT_CHARS = "-LFS"
 DOWN_CHARS = "|7FS"
 LEFT_CHARS = "-J7S"
+
+PIPE_TRANS = str.maketrans("-|F7LJ", "─│┌┐└┘")
 
 
 def get_new_coords(j, i, field, visited):
@@ -68,7 +71,6 @@ def get_domains(field, boundary):
     unvisited = set(
         (j, i) for (_, j, i) in iterate_field(field) if (j, i) not in boundary
     )
-    height, width = get_dimensions(field)
 
     while unvisited:
         current_domain = set()
@@ -112,8 +114,12 @@ def get_winding_number(coord, loop):
     return round(total_angle / (2 * pi))
 
 
+def print_field(field):
+    print("\n".join("".join(line).translate(PIPE_TRANS) for line in field))
+
+
 def parse_input(input_string: str):
-    field = input_string.split("\n")
+    field = [list(line) for line in input_string.split("\n")]
     start = next((j, i) for (char, j, i) in iterate_field(field) if char == "S")
 
     return field, start
@@ -121,16 +127,13 @@ def parse_input(input_string: str):
 
 def solve_a(input_string: str):
     field, start = parse_input(input_string)
-    height, width = get_dimensions(field)
-    loop = [["." for _ in range(width)] for _ in range(height)]
 
     coords = [start]
     visited = set()
-    for n in count(0):
+    for num_steps in count():
         visited.update(coords)
         new_coords = set()
         for j, i in coords:
-            loop[j][i] = field[j][i]
             new_coords.update(get_new_coords(j, i, field, visited))
 
         if not new_coords:
@@ -138,8 +141,11 @@ def solve_a(input_string: str):
 
         coords = new_coords
 
-    print("\n".join("".join(line) for line in loop))
-    return n
+    for char, j, i in iterate_field(field):
+        field[j][i] = char if (j, i) in visited else "."
+
+    print_field(field)
+    return num_steps
 
 
 def solve_b(input_string: str):
@@ -147,24 +153,22 @@ def solve_b(input_string: str):
     loop, visited = get_loop(field, start)
 
     height, width = get_dimensions(field)
-    domain_field = [["." for _ in range(width)] for _ in range(height)]
 
     domains = get_domains(field, visited)
-    num_trapped_fields = 0
+    num_trapped_tiles = 0
 
-    for n, domain in enumerate(domains):
-        for j, i in domain:
-            domain_field[j][i] = str(n % 10)
-
+    for domain in tqdm(domains, "Calculate winding numbers"):
         if (0, 0) in domain or (height - 1, width - 1) in domain:
-            continue
-
-        coord = next(iter(domain))  # Random element from the domain
-
-        winding_number = get_winding_number(coord, loop)
+            winding_number = 0
+        else:
+            coord = next(iter(domain))  # Random element from the domain
+            winding_number = get_winding_number(coord, loop)
 
         if winding_number != 0:
-            num_trapped_fields += len(domain)
+            num_trapped_tiles += len(domain)
 
-    print("\n".join("".join(line) for line in domain_field))
-    return num_trapped_fields
+        for j, i in domain:
+            field[j][i] = "I" if winding_number else "O"
+
+    print_field(field)
+    return num_trapped_tiles
