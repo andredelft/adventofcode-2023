@@ -6,9 +6,9 @@ def get_dimensions(field: Field):
 
 
 def iterate_field(field: Field):
-    for i, row in enumerate(field):
-        for j, item in enumerate(row):
-            yield item, i, j
+    for j, row in enumerate(field):
+        for i, item in enumerate(row):
+            yield item, j, i
 
 
 def iter_around(
