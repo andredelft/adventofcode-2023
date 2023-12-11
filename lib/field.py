@@ -59,3 +59,7 @@ def iter_around(
     if lft >= 0:
         for j in reversed(range(top + 1, btm)):
             yield (j, lft)
+
+
+def print_field(field):
+    print("\n".join("".join(line) for line in field))
