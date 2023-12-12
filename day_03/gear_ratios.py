@@ -1,22 +1,18 @@
 import re
 
-from lib.field import iter_around
+from lib.field import Field
 from lib.array import product
 
 
-def parse_input(input_string: str):
-    return input_string.split("\n")
-
-
 def solve_a(input_string: str):
-    field = parse_input(input_string)
+    field = Field(input_string)
 
     part_number_sum = 0
-    for y, line in enumerate(field):
+    for y, line in enumerate(field.rows(joined=True)):
         for match in re.finditer(r"\d+", line):
             if any(
-                re.match(r"[^\d\.]", field[j][i])
-                for (j, i) in iter_around(field, y, match.span())
+                re.match(r"[^\d\.]", field[j, i])
+                for (j, i) in field.coords_around(y, match.span())
             ):
                 part_number_sum += int(match.group())
 
@@ -24,14 +20,14 @@ def solve_a(input_string: str):
 
 
 def solve_b(input_string: str):
-    field = parse_input(input_string)
+    field = Field(input_string)
 
     gears = {}
-    for y, line in enumerate(field):
+    for y, line in enumerate(field.rows(joined=True)):
         for match in re.finditer(r"\d+", line):
             number = int(match.group())
-            for j, i in iter_around(field, y, match.span()):
-                if field[j][i] == "*":
-                    gears[(j, i)] = gears.get((j, i), []) + [number]
+            for j, i in field.coords_around(y, match.span()):
+                if field[j, i] == "*":
+                    gears[j, i] = gears.get((j, i), []) + [number]
 
     return sum(product(nums) for nums in gears.values() if len(nums) == 2)

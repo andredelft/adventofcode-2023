@@ -2,21 +2,20 @@ from itertools import count, pairwise
 from math import asin, pi
 from tqdm import tqdm
 
-from lib.field import iterate_field, get_dimensions, iter_around
+from lib.field import Field
 
-
-UP_CHARS = "|LJS"
-RIGHT_CHARS = "-LFS"
-DOWN_CHARS = "|7FS"
-LEFT_CHARS = "-J7S"
 
 PIPE_TRANS = str.maketrans("-|F7LJ", "─│┌┐└┘")
 
+UP_CHARS = "│└┘S"
+RIGHT_CHARS = "─┌└S"
+DOWN_CHARS = "│┌┐S"
+LEFT_CHARS = "─┐┘S"
 
-def get_new_coords(j, i, field, visited):
-    char = field[j][i]
-    height, width = get_dimensions(field)
 
+def get_new_coords(coord, field: Field, visited):
+    j, i = coord
+    char = field[j, i]
     new_coords = []
 
     if char in UP_CHARS and j > 0:
@@ -25,13 +24,13 @@ def get_new_coords(j, i, field, visited):
         if coord not in visited and new_char in DOWN_CHARS:
             new_coords.append(coord)
 
-    if char in RIGHT_CHARS and i < width - 1:
+    if char in RIGHT_CHARS and i < field.width - 1:
         coord = (j, i + 1)
         new_char = field[j][i + 1]
         if coord not in visited and new_char in LEFT_CHARS:
             new_coords.append(coord)
 
-    if char in DOWN_CHARS and j < height - 1:
+    if char in DOWN_CHARS and j < field.height - 1:
         coord = (j + 1, i)
         new_char = field[j + 1][i]
         if coord not in visited and new_char in UP_CHARS:
@@ -57,7 +56,7 @@ def get_loop(field, start):
     visited = set()
     loop = [start]
     while coord != start:
-        coord = get_new_coord(*loop[-1], field, visited)
+        coord = get_new_coord(loop[-1], field, visited)
 
         if coord:
             visited.add(coord)
@@ -68,9 +67,7 @@ def get_loop(field, start):
 
 def get_domains(field, boundary):
     domains = []
-    unvisited = set(
-        (j, i) for (_, j, i) in iterate_field(field) if (j, i) not in boundary
-    )
+    unvisited = set(coord for coord in field.coords() if coord not in boundary)
 
     while unvisited:
         current_domain = set()
@@ -83,7 +80,7 @@ def get_domains(field, boundary):
             for coord in current_step:
                 neighbours = [
                     neighbour
-                    for neighbour in iter_around(field, *coord)
+                    for neighbour in field.coords_around(*coord)
                     if (neighbour not in boundary) and (neighbour not in current_domain)
                 ]
                 next_step.update(neighbours)
@@ -114,13 +111,9 @@ def get_winding_number(coord, loop):
     return round(total_angle / (2 * pi))
 
 
-def print_field(field):
-    print("\n".join("".join(line).translate(PIPE_TRANS) for line in field))
-
-
 def parse_input(input_string: str):
-    field = [list(line) for line in input_string.split("\n")]
-    start = next((j, i) for (char, j, i) in iterate_field(field) if char == "S")
+    field = Field(input_string.translate(PIPE_TRANS))
+    start = next(coord for coord, char in field.enumerate() if char == "S")
 
     return field, start
 
@@ -133,18 +126,18 @@ def solve_a(input_string: str):
     for num_steps in count():
         visited.update(coords)
         new_coords = set()
-        for j, i in coords:
-            new_coords.update(get_new_coords(j, i, field, visited))
+        for coord in coords:
+            new_coords.update(get_new_coords(coord, field, visited))
 
         if not new_coords:
             break
 
         coords = new_coords
 
-    for char, j, i in iterate_field(field):
-        field[j][i] = char if (j, i) in visited else "."
+    for coord, char in field.enumerate():
+        field[coord] = char if coord in visited else "."
 
-    print_field(field)
+    print(field)
     return num_steps
 
 
@@ -152,13 +145,11 @@ def solve_b(input_string: str):
     field, start = parse_input(input_string)
     loop, visited = get_loop(field, start)
 
-    height, width = get_dimensions(field)
-
     domains = get_domains(field, visited)
     num_trapped_tiles = 0
 
     for domain in tqdm(domains, "Calculate winding numbers"):
-        if (0, 0) in domain or (height - 1, width - 1) in domain:
+        if (0, 0) in domain or (field.height - 1, field.width - 1) in domain:
             winding_number = 0
         else:
             coord = next(iter(domain))  # Random element from the domain
@@ -167,8 +158,8 @@ def solve_b(input_string: str):
         if winding_number != 0:
             num_trapped_tiles += len(domain)
 
-        for j, i in domain:
-            field[j][i] = "I" if winding_number else "O"
+        for coord in domain:
+            field[coord] = "I" if winding_number else "O"
 
-    print_field(field)
+    print(field)
     return num_trapped_tiles

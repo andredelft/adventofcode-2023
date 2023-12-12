@@ -1,37 +1,30 @@
 from itertools import combinations
 
-from lib.field import get_dimensions, iterate_field, print_field
+from lib.field import Field
 
 
 def cosmic_expansion(cosmos):
     expanded_cosmos = []
-    _, width = get_dimensions(cosmos)
 
-    for line in cosmos:
-        expanded_cosmos.append([*line])
-        if all(char == "." for char in line):
-            expanded_cosmos.append([*line])
+    for row in cosmos.rows():
+        expanded_cosmos.append([*row])
+        if all(space == "." for space in row):
+            expanded_cosmos.append([*row])
 
-    for i in reversed(range(width)):
-        if all(line[i] == "." for line in cosmos):
+    for i, col in reversed(list(enumerate(cosmos.cols()))):
+        if all(space == "." for space in col):
             for j in range(len(expanded_cosmos)):
                 expanded_cosmos[j].insert(i, ".")
 
-    return expanded_cosmos
-
-
-def parse_input(input_string: str):
-    return [list(line) for line in input_string.split("\n")]
+    return Field(expanded_cosmos)
 
 
 def solve_a(input_string: str):
-    cosmos = parse_input(input_string)
+    cosmos = Field(input_string)
     expanded_cosmos = cosmic_expansion(cosmos)
-    print_field(expanded_cosmos)
+    print(expanded_cosmos)
 
-    galaxies = [
-        (j, i) for value, j, i in iterate_field(expanded_cosmos) if value == "#"
-    ]
+    galaxies = [coord for coord, space in expanded_cosmos.enumerate() if space == "#"]
 
     distance_sum = 0
     for g_1, g_2 in combinations(galaxies, 2):
@@ -41,16 +34,16 @@ def solve_a(input_string: str):
 
 
 def solve_b(input_string: str, expansion_coefficient=1_000_000):
-    cosmos = parse_input(input_string)
+    cosmos = Field(input_string)
 
     empty_rows = set(
-        j for j, row in enumerate(cosmos) if all(char == "." for char in row)
+        j for j, row in enumerate(cosmos.rows()) if all(char == "." for char in row)
     )
     empty_cols = set(
-        i for i in range(len(cosmos[0])) if all(row[i] == "." for row in cosmos)
+        i for i, col in enumerate(cosmos.cols()) if all(char == "." for char in col)
     )
 
-    galaxies = [(j, i) for value, j, i in iterate_field(cosmos) if value == "#"]
+    galaxies = [coord for coord, space in cosmos.enumerate() if space == "#"]
 
     distance_sum = 0
 
