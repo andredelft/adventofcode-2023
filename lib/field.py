@@ -14,6 +14,13 @@ class Field(object):
     def __str__(self):
         return "\n".join("".join(line) for line in self.field)
 
+    def __hash__(self):
+        return hash(str(self))
+
+    def __eq__(self, other):
+        if isinstance(other, Field):
+            return self.field == other.field
+
     def __len__(self):
         return self.height * self.width
 
@@ -43,14 +50,14 @@ class Field(object):
         _row = self[index]
         return "".join(_row) if joined else _row
 
+    def col(self, index: int, joined=False):
+        _col = [self[j, index] for j in range(self.height)]
+        return "".join(_col) if joined else _col
+
     def rows(self, joined=False):
         for j in range(self.height):
             _row = self[j]
             yield "".join(_row) if joined else _row
-
-    def col(self, index: int, joined=False):
-        _col = [self[j, index] for j in range(self.height)]
-        return "".join(_col) if joined else _col
 
     def cols(self, joined=False):
         for i in range(self.width):
@@ -103,3 +110,6 @@ class Field(object):
         if lft >= 0:
             for j in reversed(range(top + 1, btm)):
                 yield (j, lft)
+
+    def copy(self):
+        return Field([_row.copy() for _row in self.rows()])
