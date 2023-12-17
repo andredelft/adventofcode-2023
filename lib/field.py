@@ -1,3 +1,8 @@
+from typing import Generator
+
+Coordinate = tuple[int, int]
+
+
 class Field(object):
     def __init__(self, field: list[list[str]] | list[str] | str):
         if isinstance(field, str):
@@ -24,20 +29,17 @@ class Field(object):
     def __len__(self):
         return self.height * self.width
 
-    def __getitem__(self, key: int | tuple[int, int]):
-        if isinstance(key, int):
-            return self.field[key]
-        else:
-            return self.field[key[0]][key[1]]
+    def __getitem__(self, coord: Coordinate):
+        return self.field[coord[0]][coord[1]]
 
     def __setitem__(self, key: tuple[int, int], value):
         self.field[key[0]][key[1]] = value
 
     def __iter__(self):
-        for j, i in self.coords():
-            yield self[j, i]
+        for coord in self.coords():
+            yield self[coord]
 
-    def coords(self):
+    def coords(self) -> Generator[Coordinate, None, None]:
         for j in range(self.height):
             for i in range(self.width):
                 yield (j, i)
@@ -110,6 +112,9 @@ class Field(object):
         if lft >= 0:
             for j in reversed(range(top + 1, btm)):
                 yield (j, lft)
+
+    def contains(self, coord: Coordinate):
+        return 0 <= coord[0] < self.height and 0 <= coord[1] < self.width
 
     def copy(self):
         return Field([_row.copy() for _row in self.rows()])
