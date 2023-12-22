@@ -49,7 +49,7 @@ class Field(object):
             yield coord, self[coord]
 
     def row(self, index: int, joined=False):
-        _row = self[index]
+        _row = self.field[index]
         return "".join(_row) if joined else _row
 
     def col(self, index: int, joined=False):
@@ -58,7 +58,7 @@ class Field(object):
 
     def rows(self, joined=False):
         for j in range(self.height):
-            _row = self[j]
+            _row = self.field[j]
             yield "".join(_row) if joined else _row
 
     def cols(self, joined=False):
