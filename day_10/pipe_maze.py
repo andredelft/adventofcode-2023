@@ -15,30 +15,30 @@ LEFT_CHARS = "─┐┘S"
 
 def get_new_coords(coord, field: Field, visited):
     j, i = coord
-    char = field[j, i]
+    char = field[coord]
     new_coords = []
 
     if char in UP_CHARS and j > 0:
         coord = (j - 1, i)
-        new_char = field[j - 1][i]
+        new_char = field[coord]
         if coord not in visited and new_char in DOWN_CHARS:
             new_coords.append(coord)
 
     if char in RIGHT_CHARS and i < field.width - 1:
         coord = (j, i + 1)
-        new_char = field[j][i + 1]
+        new_char = field[coord]
         if coord not in visited and new_char in LEFT_CHARS:
             new_coords.append(coord)
 
     if char in DOWN_CHARS and j < field.height - 1:
         coord = (j + 1, i)
-        new_char = field[j + 1][i]
+        new_char = field[coord]
         if coord not in visited and new_char in UP_CHARS:
             new_coords.append(coord)
 
     if char in LEFT_CHARS and i > 0:
         coord = (j, i - 1)
-        new_char = field[j][i - 1]
+        new_char = field[coord]
         if coord not in visited and new_char in RIGHT_CHARS:
             new_coords.append(coord)
 
