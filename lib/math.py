@@ -1,6 +1,8 @@
 from collections import Counter
+from itertools import pairwise
 
 from .array import product
+from .field import Coordinate
 
 Number = int | float
 
@@ -67,3 +69,41 @@ def gcd(*nums: int):
             break
 
     return product(common_primes.elements())
+
+
+HEX_VALUE_MAP = {
+    "0": 0,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "a": 10,
+    "b": 11,
+    "c": 12,
+    "d": 13,
+    "e": 14,
+    "f": 15,
+}
+
+
+def hex_value(hex_string: str) -> int:
+    """Find the int value of a hexadecimal string (equivalent to `int(hex_string, 16)`)"""
+    rest, char = hex_string[:-1], hex_string[-1]
+    value = HEX_VALUE_MAP[char.lower()]
+    if not rest:
+        return value
+    else:
+        return 16 * hex_value(rest) + value
+
+
+def polygon_area(nodes: list[Coordinate]):
+    """Find the area of the polygon enclosed by `coords`. NB: Since we only accept integer coordinates, we know that the result has to be an integer as well."""
+    return (
+        sum((y_1 + y_2) * (x_1 - x_2) for (y_1, x_1), (y_2, x_2) in pairwise(nodes))
+        // 2
+    )

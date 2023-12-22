@@ -1,4 +1,4 @@
-from typing import Generator
+from typing import Generator, Iterable
 
 Coordinate = tuple[int, int]
 
@@ -70,6 +70,7 @@ class Field(object):
         self,
         y: int | list[int, int] | tuple[int, int],
         x: int | list[int, int] | tuple[int, int],
+        diagonal=True,
     ):
         if isinstance(y, list) or isinstance(y, tuple):
             top = y[0] - 1
@@ -85,28 +86,28 @@ class Field(object):
             lft = x - 1
             rgt = x + 1
 
-        if top >= 0 and lft >= 0:
+        if diagonal and top >= 0 and lft >= 0:
             yield (top, lft)
 
         if top >= 0:
             for i in range(lft + 1, rgt):
                 yield (top, i)
 
-        if top >= 0 and rgt < self.width:
+        if diagonal and top >= 0 and rgt < self.width:
             yield (top, rgt)
 
         if rgt < self.width:
             for j in range(top + 1, btm):
                 yield (j, rgt)
 
-        if btm < self.height and rgt < self.width:
+        if diagonal and btm < self.height and rgt < self.width:
             yield (btm, rgt)
 
         if btm < self.height:
             for i in reversed(range(lft + 1, rgt)):
                 yield (btm, i)
 
-        if btm < self.height and lft >= 0:
+        if diagonal and btm < self.height and lft >= 0:
             yield (btm, lft)
 
         if lft >= 0:
@@ -118,3 +119,32 @@ class Field(object):
 
     def copy(self):
         return Field([_row.copy() for _row in self.rows()])
+
+    def draw(self, coords: Iterable[Coordinate], char="#"):
+        for coord in coords:
+            self[coord] = char
+
+    @classmethod
+    def blank(cls, height, width, char="."):
+        return cls([[char for _ in range(width)] for _ in range(height)])
+
+
+def flood_fill(
+    start: Coordinate,
+    field: Field,
+    boundary_char: str = "#",
+):
+    coords_to_visit = {start}
+    visited: set[Coordinate] = set()
+
+    while coords_to_visit:
+        new_coords_to_visit = set()
+        for coord in coords_to_visit:
+            visited.add(coord)
+            for coord in field.coords_around(*coord):
+                if coord not in visited and field[coord] != boundary_char:
+                    new_coords_to_visit.add(coord)
+
+        coords_to_visit = new_coords_to_visit
+
+    return visited
